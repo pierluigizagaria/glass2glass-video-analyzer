@@ -2,9 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync,existsSync} from 'node:fs';
 import vm from 'node:vm';
-import {analyzeTraces,pairEvents,normalizeRanges} from '../engine.js';
+import {analyzeTraces,pairEvents,normalizeRanges,frameIndexAtTimestamp} from '../engine.js';
 import {captureTiming} from '../timing.js';
-import {constrainView,zoomView} from '../timeline.js';
+import {constrainView,zoomView,rangeBoundary} from '../timeline.js';
 const fixture=new URL('../../bench/optical/tool-validation/20261021-010054/optical-latency-20261021-010347/',import.meta.url);
 const privateFixtureAvailable=existsSync(new URL('report.json',fixture));
 function golden(){
@@ -45,12 +45,35 @@ test('capture FPS uses only explicit acquisition metadata',()=>{
   assert.equal(captureTiming({fps:240,frame_rate:240}).capture_fps,null);
   for(const value of [NaN,Infinity,0,-30,'NaN','30 fps',new Uint8Array(2)])assert.equal(captureTiming({'com.android.capture.fps':value}).capture_fps,null);
 });
+
+test('selected decoded frames retain their original index despite sub-microsecond timestamp rounding',()=>{
+  const timestamps=[2,2+1001/30000,2+2002/30000,2.15];
+  for(const [index,pts] of timestamps.entries())for(const delta of [-.0000007,0,.0000007]){
+    assert.equal(frameIndexAtTimestamp(timestamps,pts+delta),index);
+  }
+  assert.throws(()=>frameIndexAtTimestamp(timestamps,2.1),/Cannot map/);
+  assert.throws(()=>frameIndexAtTimestamp([],0),/Cannot map/);
+});
 test('zoom stays anchored, bounded, and independent of valid ranges',()=>{
   assert.deepEqual(zoomView([20,60],100,.5,.25),[25,45]);
   assert.deepEqual(constrainView([-5,15],100),[0,20]);
   assert.deepEqual(constrainView([95,115],100),[80,100]);
   assert.deepEqual(zoomView([20,60],100,100),[0,100]);
   assert.deepEqual(normalizeRanges([[20,30],[0,10],[8,12]],100),[[0,12],[20,30]]);
+});
+
+test('range navigation visits starts and ends in order, skips gaps and stops at the limits',()=>{
+  const ranges=[[30.013,60.013],[.013,20.013]];
+  assert.equal(rangeBoundary([],10,1),null);
+  assert.equal(rangeBoundary(ranges,0,-1),null);
+  let position=0;
+  for(const expected of [.013,20.013,30.013,60.013]){position=rangeBoundary(ranges,position,1);assert.equal(position,expected);}
+  assert.equal(rangeBoundary(ranges,position,1),null);
+  for(const expected of [30.013,20.013,.013]){position=rangeBoundary(ranges,position,-1);assert.equal(position,expected);}
+  assert.equal(rangeBoundary(ranges,position,-1),null);
+  assert.equal(rangeBoundary([[0,10],[10,20]],10,1),20);
+  assert.equal(rangeBoundary(ranges,25,-1),20.013);
+  assert.equal(rangeBoundary(ranges,25,1),30.013);
 });
 test('standalone HTML has valid embedded code and blocks network connections',()=>{
   const html=readFileSync(new URL('../dist/index.html',import.meta.url),'utf8');

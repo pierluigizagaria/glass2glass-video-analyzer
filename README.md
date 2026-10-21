@@ -10,15 +10,42 @@ installation, account, CDN or network connection is required. It can also be
 served unchanged by any static HTTPS host. Codec support depends on the browser;
 unsupported codecs produce an actionable error rather than silently skipping frames.
 
+[Buy me a coffee](https://buymeacoffee.com/pierluigizagaria)
+
+Drag the divider beside the Inspector to change its width, or the divider above
+Signals to change the graph height. Focus a divider and use arrow keys for precise
+adjustments (Shift makes larger steps). Double-click it or press Home to restore
+its default size. The browser remembers panel sizes locally; video and measurement
+data are not saved by this preference. On narrow screens the Inspector stacks below
+the video, while the Signals height remains adjustable.
+
+## Recording target
+
+Choose **Recording target** in the top bar to fill the browser tab with a large
+black/white patch, elapsed timer and unique source-event IDs. This follows the
+optical test source's format: alternating levels at irregular 100–250 ms intervals.
+Choose a take duration and press **Start**; a three-second countdown gives you time
+to position the camera. Film the source display and the delayed output together,
+then open that recording in the analyzer and select plain areas inside both patches.
+
+**Stop** or Escape ends the sequence. Switching back to the analyzer preserves the
+loaded video, ranges and results. The target stops if the tab is hidden or the
+display stalls, so a suspended animation cannot silently continue a take. The timer
+and event IDs identify content; browser draw times are not photon timestamps and
+are not used to calculate latency. No webcam, capture device or streaming service
+is started by this section.
+
 ## Workflow
 
 1. **Open video** or drop a local recording onto the page. Nothing is uploaded.
 2. Select **Reference** and **Output** regions. Draw in the preview or enter
    `x, y, width, height` under **Pixel coordinates** and press Enter. Coordinates
    refer to the original unrotated decoded frame. Click selects a 12 × 12 region.
-3. Add valid ranges in playback time. Each range has its own color; gaps are
-   excluded. Overlapping or touching ranges merge. Without an explicit list,
-   analysis uses the From–To fields.
+3. Select a segment with the zoom handles and choose **Add range**. From and To
+   update while zooming, panning or resizing. Editing these fields updates the
+   selection too. Each added range has its own color; gaps are
+   excluded. Overlapping or touching ranges merge. Add at least one range before
+   analyzing. Only added ranges are measured; the zoom selection is a draft until added.
 4. Recording timing defaults to **Auto (metadata)** when an explicit capture
    FPS tag is found. Supported tag: `com.android.capture.fps` (text or binary
    float32). File/playback FPS alone never establishes capture FPS. Auto combines
@@ -31,20 +58,46 @@ unsupported codecs produce an actionable error rather than silently skipping fra
    brightness in both regions, not to individual pixels or the preview image.
    Automatic mode calibrates each region separately. A threshold outside the
    observed dark/light levels can produce no transitions.
-6. **Analyze video** runs decode and matching in a Web Worker. The preview and
+6. **Analyze** measures and matches only the added intervals in a Web Worker.
+   Frame numbers still refer to the original video. Codec dependency frames may
+   be decoded to reach a range, but are not measured or included in the results. The preview and
    timeline remain interactive. Cancel terminates the worker immediately.
-7. Inspect transitions or per-range statistics. **Export** downloads one ZIP
+7. Use the **Transitions / By range** tabs to switch result views. Arrow keys
+   switch tabs without moving the video. **By range** shows independent results for each interval’s own mean, median,
+   95th percentile, transition count and average frame delay. Each interval shows
+   its mean calculation (sum of signed delays divided by accepted transitions).
+   Below each calculation, the transition table shows that range's reference and
+   output frames, frame delay and milliseconds. Selecting a row inspects the same
+   transition as in the overall list; transition numbers stay consistent.
+   When no measurements are available, both tabs show the reason directly,
+   including which region lacks contrast, and a way to inspect the affected range.
+   **Inspect** focuses the graph on that range. The overall summary is hidden in
+   this view. **Export** downloads one ZIP
    containing `report.json`, `pairs.csv`, `ranges.csv`, and `luminance.csv`.
 
 ## One navigation timeline
 
-**Timeline** combines the playback cursor, frame controls, colored valid ranges
-and analysis viewport in one fixed full-recording control. Drag the cursor or
+The **timeline** keeps frame, zoom, pan and Fit all controls in the row above
+a thin, fixed full-recording track showing the cursor, ranges and selection. Drag the cursor or
 click anywhere in the colored track to seek. Double-click within a range to zoom
-the signal view to it. Drag the outlined view window to pan, or either handle to
-resize. Range colors remain fixed across the entire recording, even before analysis.
+the signal view to it. The translucent zoom selection occupies the same track as the
+colored ranges. Straight vertical handles match the playhead height and have separate, generous
+hit areas even at high zoom. The selection has no top or bottom border; saved
+range bands have square ends.
+A red playhead with a pointed head identifies the video position in both the
+fixed timeline and the signal graph. Only saved ranges have labels on the track.
+Use **Previous range boundary / Next range boundary**, or **Up / Down**, to jump
+through each saved range's start and end in chronological order. Navigation stops
+at the first and last boundary and keeps the zoom level, panning if needed.
+The preview displays the decoded frame at the requested boundary; repeated jumps
+advance to the next boundary even when a boundary falls between video frames.
+Drag either handle to resize, Shift+drag the track to pan, or
+focus the selection and use the arrow keys. Shift+arrow on a handle adjusts
+by one playback frame. Adjusting a handle does not move the video playhead. Range colors remain fixed across the entire recording, even before analysis.
 
-**Signals** is the detailed analysis view. Wheel to zoom around the cursor, drag
+**Signals** is the detailed analysis view. Drag its red playhead to scrub the
+video without panning; drag the graph background to pan. Mouse pointers distinguish
+seeking, resizing and panning. Wheel to zoom around the cursor, drag
 horizontally to pan, Shift+wheel to pan, or use the + / − and arrow buttons.
 Click to seek. **Fit all** restores the complete recording. With the plot focused,
 + / − zoom, Left/Right pan and Home fits all. The whole-video timeline never
@@ -57,7 +110,7 @@ a recording, and Esc cancels analysis. The inspector scrolls independently.
 
 Results are a snapshot of the last completed analysis. Editing regions, ranges,
 timing, matching settings or brightness threshold keeps the previous results
-and curves visible. **Update analysis** starts the replacement calculation.
+and curves visible. **Analyze** starts the replacement calculation.
 The old results remain available, including Export, until a successful new run
 replaces them. Cancellation or an error preserves the old results. Opening a
 different video clears them. The notice above the plot identifies pending changes.

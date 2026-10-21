@@ -1,0 +1,21 @@
+#recordingMode{font-size:12px}
+#recordingControls{display:flex;align-items:center;gap:8px}
+#recordingControls label{color:var(--muted);font-size:12px}
+#targetDuration{width:80px}
+#recordingWorkspace{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;align-items:center;justify-items:center;gap:4vw;padding:4vw;background:#606060;color:#fff;position:relative}
+#targetPatch{width:min(40vw,calc(100dvh - 190px));aspect-ratio:1;max-width:660px;background:#000;display:flex;align-items:center;justify-content:center}
+#targetPatch.lit{background:#fff}
+#targetCountdown{font-size:clamp(60px,12vw,180px);font-weight:600;line-height:1;color:#fff;font-variant-numeric:tabular-nums}
+.target-readout{min-width:0;justify-self:start}
+#targetTimer{display:block;font-size:clamp(32px,6vw,100px);font-weight:600;line-height:1.1;letter-spacing:-.035em;font-variant-numeric:tabular-nums;white-space:nowrap}
+#targetEvent{display:block;margin-top:20px;font-family:Consolas,monospace;font-size:clamp(18px,2.8vw,44px);font-weight:500;line-height:1.2}
+.target-instructions{margin-top:32px;max-width:39ch;font-size:clamp(12px,1.2vw,16px);line-height:1.7;color:#fff}
+.target-instructions p+p{margin-top:8px;color:#e2e2e2}
+#targetState{position:absolute;left:4vw;right:4vw;bottom:20px;font-size:13px;color:#fff}
+body[data-mode="recording"]{height:100dvh;overflow:hidden}
+body[data-mode="recording"] .file-meta,body[data-mode="recording"] #helpButton,body[data-mode="recording"] #exportButton,body[data-mode="recording"] #openButton,body[data-mode="recording"] footer,body[data-mode="recording"] #errorBanner{display:none!important}
+body[data-mode="recording"] .top-actions{margin-left:auto}
+@media(max-width:1100px){.appbar{gap:12px}.coffee-link{width:32px;padding:0;justify-content:center}.coffee-link span{display:none}}
+@media(max-width:800px){.appbar{height:auto;min-height:60px;flex-wrap:wrap;padding:9px 10px;gap:8px}.appbar .brand{flex:1}.top-actions{gap:5px}.top-actions button{padding:0 8px}#recordingWorkspace{grid-template-columns:1fr;padding:18px;gap:18px;align-content:center}#targetPatch{width:min(54vw,calc((100dvh - 250px)*.6));min-width:100px}.target-readout{justify-self:center;text-align:center}#targetTimer{font-size:clamp(32px,9vw,68px)}#targetEvent{font-size:20px;margin-top:8px}.target-instructions{font-size:12px;line-height:1.5;margin-top:14px;max-width:42ch}#targetState{bottom:12px;left:18px;right:18px;font-size:12px}#recordingControls label{display:none}}
+@media(max-width:480px){.top-actions{width:100%;justify-content:flex-end}.brand h1{max-width:none}#recordingMode{margin-right:auto}body[data-mode="recording"] .top-actions{flex-wrap:wrap}#recordingControls{gap:6px}#targetReset{padding:0 5px}#targetDuration{width:65px}}
+@media(max-height:520px) and (min-width:801px){#recordingWorkspace{padding:20px 4vw}#targetPatch{width:min(36vw,calc(100dvh - 130px))}.target-instructions{margin-top:12px;font-size:12px}#targetState{bottom:10px}}

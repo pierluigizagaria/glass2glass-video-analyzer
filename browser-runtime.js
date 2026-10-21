@@ -25,7 +25,8 @@ export class BrowserRuntime{
     if(path==='analyze'){
       if(this.job.state==='running')throw Error('Analysis is already running.');
       if(!this.file)throw Error('Open a video first.');
-      const revision=this.job.revision+1;this.job={state:'running',progress:0,message:'Reading video frames…',revision};
+      if(!request?.ranges?.length)throw Error('Add at least one range to analyze.');
+      const revision=this.job.revision+1;this.job={state:'running',progress:0,message:'Reading selected ranges…',revision};
       const task=spawn();this.analysisWorker=task;
       task.worker.progress=data=>{if(this.job.revision===revision&&this.job.state==='running')this.job={...this.job,...data};};
       task.request('analyze',{file:this.file,request}).then(value=>{if(this.job.revision!==revision||this.job.state!=='running')return;this.result=value;this.job={state:'done',progress:1,message:'Analysis complete',revision};}).catch(error=>{if(this.job.revision===revision&&this.job.state==='running')this.job={state:'error',progress:0,message:error.message,revision};}).finally(()=>task.close());

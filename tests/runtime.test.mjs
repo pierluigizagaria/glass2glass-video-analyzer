@@ -17,12 +17,17 @@ test('results survive edits, recalculation, cancellation and failure until a suc
   globalThis.Worker=WorkerStub;
   try{
     const runtime=new BrowserRuntime();await runtime.open(new Blob());
-    await runtime.call('analyze',{threshold:null});const first={report:{label:'first'},traces:[1]};WorkerStub.latest.finish(first);await settle();
+    await assert.rejects(runtime.call('analyze',{ranges:[]}),/Add at least one range/);
+    assert.equal(runtime.job.state,'idle');assert.equal(runtime.analysisWorker,undefined);
+    await runtime.call('analyze',{threshold:null,ranges:[[0,1]]});const first={report:{label:'first'},traces:[1]};WorkerStub.latest.finish(first);await settle();
     assert.equal(runtime.result,first);
-    await runtime.call('analyze',{threshold:128});assert.equal(runtime.result,first);assert.equal(runtime.snapshot().ready,true);
+    const completedJob=runtime.job,completedWorker=WorkerStub.latest;
+    await assert.rejects(runtime.call('analyze',{ranges:[]}),/Add at least one range/);
+    assert.equal(runtime.job,completedJob);assert.equal(WorkerStub.latest,completedWorker);assert.equal(runtime.result,first);
+    await runtime.call('analyze',{threshold:128,ranges:[[0,1]]});assert.equal(runtime.result,first);assert.equal(runtime.snapshot().ready,true);
     const cancelled=WorkerStub.latest;await runtime.call('cancel');await settle();assert.equal(runtime.result,first);assert.equal(cancelled.terminated,true);
-    await runtime.call('analyze',{threshold:200});WorkerStub.latest.fail();await settle();assert.equal(runtime.job.state,'error');assert.equal(runtime.result,first);
-    await runtime.call('analyze',{threshold:100});const next={report:{label:'next'},traces:[2]};assert.equal(runtime.result,first);WorkerStub.latest.finish(next);await settle();assert.equal(runtime.result,next);assert.equal(runtime.job.state,'done');
+    await runtime.call('analyze',{threshold:200,ranges:[[0,1]]});WorkerStub.latest.fail();await settle();assert.equal(runtime.job.state,'error');assert.equal(runtime.result,first);
+    await runtime.call('analyze',{threshold:100,ranges:[[0,1]]});const next={report:{label:'next'},traces:[2]};assert.equal(runtime.result,first);WorkerStub.latest.finish(next);await settle();assert.equal(runtime.result,next);assert.equal(runtime.job.state,'done');
     await runtime.open(new Blob());assert.equal(runtime.result,null);
   }finally{globalThis.Worker=original;}
 });

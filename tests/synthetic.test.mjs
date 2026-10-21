@@ -28,3 +28,31 @@ test('unknown synthetic timing retains traces and produces no absolute delay',()
   const g=fixture(),r=analyzeTraces(g.info,g.traces,{...g.request,scale:null});
   assert.equal(r.report.samples.length,0);assert.equal(r.report.distribution,null);assert.ok(r.traces.every(t=>t.capture_ms===null));
 });
+
+test('measuring only saved ranges preserves original frame numbers and all per-range calculations',()=>{
+  const g=fixture(),request={...g.request,ranges:[[1,3],[6,g.info.duration-1]]};
+  const full=analyzeTraces(g.info,g.traces,request);
+  const selected=g.traces.filter(t=>request.ranges.some(([a,b])=>t.playback_seconds>=a&&t.playback_seconds<=b));
+  const compact=analyzeTraces(g.info,selected,request);
+  assert.ok(compact.report.samples.length>15);
+  assert.deepEqual(compact.report.samples,full.report.samples);
+  assert.deepEqual(compact.report.ranges,full.report.ranges);
+  assert.deepEqual(compact.report.distribution,full.report.distribution);
+  assert.equal(compact.traces[0].frame,240);
+  assert.ok(compact.traces.length<full.traces.length);
+  assert.ok(compact.traces.every(t=>t.in_analysis));
+  for(const pair of compact.report.samples)for(const key of ['monitor_frame_lo','monitor_frame_hi','lens_frame_lo','lens_frame_hi']){
+    assert.equal(compact.traces.find(t=>t.frame===pair[key]).range_id,pair.range_id);
+  }
+});
+
+test('a flat signal identifies the failing region without fabricating measurements',()=>{
+  for(const [field,label] of [['monitor_luma','Reference'],['lens_luma','Output']]){
+    const g=fixture();g.traces.forEach(row=>row[field]=100);
+    const result=analyzeTraces(g.info,g.traces,g.request);
+    assert.equal(result.report.samples.length,0);
+    assert.match(result.report.ranges[0].range_error,new RegExp(`^${label}: Insufficient contrast`));
+    assert.equal(result.report.distribution,null);
+    assert.equal(result.traces.length,g.traces.length);
+  }
+});

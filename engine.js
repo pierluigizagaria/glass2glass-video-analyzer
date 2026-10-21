@@ -48,6 +48,13 @@ export function transitions(t,y,gap,threshold=null) {
     middle_fraction:z.filter(v=>v>.4&&v<.6).length/z.length,abandoned_excursions:abandoned,incomplete_at_end:Number(Boolean(pending))}];
 }
 export function lowerBound(a,x){let l=0,r=a.length;while(l<r){const m=(l+r)>>>1;if(a[m]<x)l=m+1;else r=m;}return l;}
+export function frameIndexAtTimestamp(timestamps,seconds){
+  const next=lowerBound(timestamps,seconds);
+  const frame=next>0&&(next===timestamps.length||Math.abs(timestamps[next-1]-seconds)<=Math.abs(timestamps[next]-seconds))?next-1:next;
+  // Allow only decoder timestamp rounding to microseconds; never substitute a different frame.
+  if(frame>=timestamps.length||Math.abs(timestamps[frame]-seconds)>1e-6)throw Error('Cannot map the decoded frame to the original video timeline.');
+  return frame;
+}
 export function pairEvents(m,l,minimum=-50,maximum=150,tolerance=25) {
   const candidates=new Set(),rawM=m.map(()=>new Set()),rawL=l.map(()=>new Set()),times=l.map(e=>e.midpoint_ms);
   for(let i=0;i<m.length;i++)if(!m[i].reject_reason){
@@ -104,7 +111,9 @@ export function analyzeTraces(info, traces, request){
     try{if(t.length<3)throw Error('This range contains fewer than three frames.');
       const gap=quantile(t.slice(1).map((v,i)=>v-t[i]),.5)*1.8;
       for(const [name,field] of [['monitor','monitor_luma'],['lens','lens_luma']]){
-        const [events,calibration]=transitions(t,chosen.map(v=>v[field]),gap,threshold);
+        let events,calibration;
+        try{[events,calibration]=transitions(t,chosen.map(v=>v[field]),gap,threshold);}
+        catch(error){throw Error(`${name==='monitor'?'Reference':'Output'}: ${error.message}`);}
         events.forEach(e=>{for(const key of ['frame_lo','frame_hi','confirmed_frame'])e[key]=chosen[e[key]].frame;});
         report[name+'_events']=events;report.calibration[name]=calibration;
       }

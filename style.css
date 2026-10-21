@@ -135,14 +135,14 @@ footer{height:27px;display:flex;align-items:center;justify-content:space-between
 .empty-results{padding:65px 15px;text-align:center}
 .empty-results h2{font-size:15px;margin-bottom:9px}
 .empty-results p{color:var(--muted);font-size:12px;line-height:1.7}
-.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;padding:21px 17px 14px;gap:8px}
+.metrics{display:grid;grid-template-columns:1fr 1fr 1fr;padding:6px 17px 14px;gap:8px}
 .metric label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px}
 .metric b{font-size:20px;font-weight:550;font-variant-numeric:tabular-nums;letter-spacing:-.4px}
 .metric small{font-size:11px;color:#aaaab5;margin-left:3px}
 .result-caption{padding:0 17px 17px;font-size:12px;color:#b8b8c2;line-height:1.7;white-space:pre-line}
-.result-switch{display:flex;margin:0 17px 12px;gap:6px}
-.result-switch button{height:28px;font-size:12px;background:transparent;border:0;color:#a9a9b4}
-.result-switch button.active{background:#3a3a42;color:#f2f2f5}
+.result-switch{display:flex;position:sticky;top:0;z-index:2;margin:0 17px 12px;padding-top:10px;gap:0;background:var(--panel);border-bottom:1px solid var(--line)}
+.result-switch button{flex:1;height:34px;font-size:12px;background:transparent;border:0;border-bottom:2px solid transparent;border-radius:0;color:#a9a9b4}
+.result-switch button.active{background:transparent;border-bottom-color:#eeeef2;color:#f2f2f5}.result-switch button:hover:not(:disabled){background:#26262b}
 .table-wrap{overflow-x:auto;padding:0 9px}
 table{width:100%;border-collapse:collapse;font-size:11px;font-variant-numeric:tabular-nums}
 th{font-weight:500;color:#a5a5af;text-align:right;padding:7px 5px;border-bottom:1px solid #3a3a40;white-space:nowrap;position:sticky;top:0;background:var(--panel)}

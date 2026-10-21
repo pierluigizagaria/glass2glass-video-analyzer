@@ -2,7 +2,7 @@ import {build} from 'esbuild';
 import {readFile,writeFile,mkdir,copyFile} from 'node:fs/promises';
 const worker=await build({entryPoints:['media-worker.js'],bundle:true,write:false,format:'iife',target:'es2022',minify:true,legalComments:'inline'});
 const result=await build({entryPoints:['app.js'],bundle:true,write:false,format:'iife',target:'es2022',minify:true,legalComments:'inline',plugins:[{name:'inline-worker',setup(b){b.onResolve({filter:/\?worker$/},()=>({path:'worker',namespace:'worker'}));b.onLoad({filter:/.*/,namespace:'worker'},()=>({contents:`export default ${JSON.stringify(worker.outputFiles[0].text)}`,loader:'js'}));}}]});
-const css=await readFile('style.css','utf8')+'\n'+await readFile('timeline.css','utf8');let html=await readFile('index.html','utf8');
+const css=await readFile('style.css','utf8')+'\n'+await readFile('timeline.css','utf8')+'\n'+await readFile('panels.css','utf8')+'\n'+await readFile('recording-target.css','utf8');let html=await readFile('index.html','utf8');
 html=html.replace('<link rel="stylesheet" href="/app.css">',`<style>${css}</style>`).replace('<script src="/app.js" defer></script>','');
 html=html.replace('</body>',()=>`<script>${result.outputFiles[0].text.replaceAll('</script','<\\/script')}</script></body>`);
 const notices='Mediabunny 1.62.0, unmodified. Source: https://github.com/Vanilagy/mediabunny\n'+await readFile('node_modules/mediabunny/LICENSE','utf8')+'\n\nfflate 0.8.3\n'+await readFile('node_modules/fflate/LICENSE','utf8');
