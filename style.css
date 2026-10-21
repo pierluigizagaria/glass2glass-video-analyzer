@@ -104,7 +104,7 @@ details[open]>summary{color:#d0d0d9;margin-bottom:6px}
 .range-fields label{font-size:11px;color:var(--muted)}
 .range-fields input{margin-top:5px;font-size:12px}
 .wide{width:100%}
-#addRange{background:#28282d;font-size:12px}
+#addRange{background:#28282d;font-size:12px;margin-top:10px}
 #addRange svg{width:14px;height:14px}
 .range-list{margin-top:8px;max-height:130px;overflow-y:auto}
 .range-item{display:flex;align-items:center;gap:6px;border-radius:4px;margin:2px 0}
