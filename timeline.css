@@ -1,0 +1,31 @@
+.overview{height:110px;flex-shrink:0;border-top:1px solid var(--line);padding:9px 18px 7px;background:#1a1a1d}
+.overview-heading{display:flex;align-items:center;gap:12px;height:30px;font-size:12px}
+#zoomLevel{margin-left:auto;color:#c7c7d0;font-size:12px;font-variant-numeric:tabular-nums}
+#overviewEmpty{margin-top:13px;color:var(--muted);font-size:12px}
+#overviewTrack{height:40px;position:relative;background:#101013;border-radius:4px;margin-top:5px;cursor:crosshair}
+#overviewBands{position:absolute;inset:0}
+.range-band{position:absolute;top:3px;height:23px;display:flex;align-items:center;border:0;border-radius:3px;background:color-mix(in srgb,var(--range) 35%,#1d1d20);color:#fff;font-size:11px;padding:0 5px;overflow:hidden;justify-content:flex-start;min-width:1px}
+.range-band{pointer-events:none}
+#analysisWindow{position:absolute;top:29px;height:8px;z-index:3;border:1px solid #d3d3df;border-radius:2px;background:#ffffff12;cursor:grab;touch-action:none;min-width:8px}
+#analysisWindow:active{cursor:grabbing}
+#analysisWindow button{position:absolute;top:-4px;height:14px;width:10px;padding:0;border:0;border-radius:2px;background:#dddde7;cursor:ew-resize;touch-action:none}
+#viewStartHandle{left:-1px}#viewEndHandle{right:-1px}
+#scrubber{position:absolute;inset:0 0 auto;width:100%;height:28px;margin:0;padding:0;background:transparent;border:0;appearance:none;z-index:2;cursor:crosshair;box-shadow:none}
+#scrubber::-webkit-slider-runnable-track{height:28px;background:transparent}
+#scrubber::-webkit-slider-thumb{appearance:none;width:3px;height:28px;background:#fff;border:0;border-radius:1px}
+#scrubber::-moz-range-track{height:28px;background:transparent}#scrubber::-moz-range-thumb{width:3px;height:28px;background:#fff;border:0;border-radius:1px}
+#scrubber:focus-visible{outline:2px solid #c8c8d0;outline-offset:2px}
+.frame-controls{display:flex;align-items:center;gap:6px}.frame-controls .icon-button{height:28px;width:25px}.frame-controls .time{font-size:12px;font-variant-numeric:tabular-nums}
+#analysisNotice{margin:0 18px 7px;color:#dbc9f2;font-size:12px;flex-shrink:0}
+#overviewRuler{display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:#a8a8b4;font-variant-numeric:tabular-nums}
+.graph-tools{display:flex;align-items:center;gap:4px;margin-left:auto}
+.graph-tools button{height:26px;min-width:26px;padding:0 6px;background:transparent;border-color:transparent;font-size:17px}
+.graph-tools #fullGraph{font-size:12px;margin-left:5px}.graph-tools #viewTime{margin-right:5px;font-size:11px;font-variant-numeric:tabular-nums}
+#plot{touch-action:none;cursor:grab}#plot:active{cursor:grabbing}
+.range-item{border-left:1px solid var(--range)}.range-item>button:first-child span{color:var(--range)}
+.signals{height:235px}.plot-bar{gap:10px}#plotMode{display:none}.brand h1{font-size:15px}
+@media(max-height:800px){.signals{height:190px}.overview{height:104px;padding-top:6px}}
+@media(max-width:1100px){#viewTime{display:none}.timeline-help{display:none}.appbar{gap:15px}.file-meta{gap:8px}.brand{gap:8px}}
+@media(max-width:800px){body{height:auto;min-height:100dvh;overflow:auto}main{display:flex;flex-direction:column;flex:initial}.workspace{height:650px}.inspector{border-left:0;border-top:1px solid var(--line)}.inspector-scroll{max-height:520px}.appbar{gap:10px;padding:0 10px}.file-meta{display:none}.top-actions{margin-left:auto}.brand h1{font-size:13px}.overview-heading .muted{display:none}.plot-bar{padding:0 10px}.legend{font-size:11px}.signals{height:190px}footer{position:sticky;bottom:0}.local-note{display:none}.empty-video p{font-size:12px}}
+
+@media(max-width:480px){.brand>svg{display:none}.brand h1{font-size:12px;white-space:normal;max-width:135px}.top-actions{gap:4px}.top-actions .icon-button{display:none}.top-actions button{padding:0 8px}.overview{padding-left:10px;padding-right:10px}.overview-heading{gap:8px}.frame-controls{gap:4px}.graph-tools{gap:0}.graph-tools #fullGraph{margin-left:1px}.plot-bar{gap:7px}.legend{gap:3px}.viewer-bar{padding:0 12px}.workspace{height:620px}.format-hint{max-width:30ch}}
