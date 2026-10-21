@@ -1,6 +1,7 @@
 export const rangeColors=['#76b9e8','#b49be5','#e5a675','#da92b1','#87c8bc','#c8c47f'];
 export const rangeColor=i=>rangeColors[i%rangeColors.length];
 const playheadColor='#f05b61';
+const plotInset=6;
 export function rangeBoundary(ranges,position,direction){
   const edges=[...new Set(ranges.flat())].sort((a,b)=>a-b);
   return direction<0?edges.filter(t=>t<position-1e-7).at(-1)??null:edges.find(t=>t>position+1e-7)??null;
@@ -27,9 +28,9 @@ export class Timeline {
     });
     $('plot').addEventListener('wheel',e=>{if(!this.s.info)return;e.preventDefault();const rect=e.currentTarget.getBoundingClientRect();
       if(e.shiftKey||Math.abs(e.deltaX)>Math.abs(e.deltaY))this.pan((e.deltaX||e.deltaY)/rect.width);
-      else this.zoom(Math.exp(Math.max(-1,Math.min(1,e.deltaY*.002))),(e.clientX-rect.left)/rect.width);},{passive:false});
+      else this.zoom(Math.exp(Math.max(-1,Math.min(1,e.deltaY*.002))),this.plotFraction(e));},{passive:false});
     $('plot').onpointerdown=e=>{if(!this.s.info||e.button!==0)return;const kind=this.nearPlayhead(e)?'playhead':'plot';this.drag={x:e.clientX,view:this.view(),kind};e.currentTarget.style.cursor=kind==='playhead'?'ew-resize':'grabbing';e.currentTarget.setPointerCapture(e.pointerId);};
-    $('plot').onpointermove=e=>{if(this.drag?.kind==='playhead'){this.seekPlot(this.plotTime(e));return;}if(this.drag?.kind==='plot'){const r=e.currentTarget.getBoundingClientRect(),v=this.drag.view,delta=(e.clientX-this.drag.x)/r.width*(v[1]-v[0]);this.setView([v[0]-delta,v[1]-delta]);return;}e.currentTarget.style.cursor=this.nearPlayhead(e)?'ew-resize':'grab';};
+    $('plot').onpointermove=e=>{if(this.drag?.kind==='playhead'){this.seekPlot(this.plotTime(e));return;}if(this.drag?.kind==='plot'){const r=e.currentTarget.getBoundingClientRect(),v=this.drag.view,delta=(e.clientX-this.drag.x)/(r.width-2*plotInset)*(v[1]-v[0]);this.setView([v[0]-delta,v[1]-delta]);return;}e.currentTarget.style.cursor=this.nearPlayhead(e)?'ew-resize':'grab';};
     $('plot').onpointerup=e=>{if(!['plot','playhead'].includes(this.drag?.kind))return;const scrubbed=this.drag.kind==='playhead';if(scrubbed)this.seekPlot(this.plotTime(e),true);else if(Math.abs(e.clientX-this.drag.x)<3)this.seek(this.plotTime(e));this.drag=null;e.currentTarget.style.cursor=scrubbed||this.nearPlayhead(e)?'ew-resize':'grab';};
     $('plot').onpointercancel=e=>{clearTimeout(this.plotSeekTimer);this.plotSeekTimer=null;this.drag=null;e.currentTarget.style.cursor='grab';};
     $('plot').onkeydown=e=>{if(['+','=','-','ArrowLeft','ArrowRight','Home'].includes(e.key))e.preventDefault();if(e.key==='+'||e.key==='=')this.zoom(.5);if(e.key==='-')this.zoom(2);if(e.key==='ArrowLeft')this.pan(-.2);if(e.key==='ArrowRight')this.pan(.2);if(e.key==='Home')this.setView([0,this.s.info?.duration||1]);};
@@ -54,8 +55,9 @@ export class Timeline {
       this.setView(kind==='start'?[Math.max(0,Math.min(v[1]-this.minSpan(),v[0]+d*dir)),v[1]]:kind==='end'?[v[0],Math.min(this.s.info.duration,Math.max(v[0]+this.minSpan(),v[1]+d*dir))]:[v[0]+d*dir,v[1]+d*dir]);};
   }
   minSpan(){return this.s.info?Math.max(.01,4/this.s.info.fps):.1;}
-  plotTime(e){const r=$('plot').getBoundingClientRect(),[a,b]=this.view();return a+Math.max(0,Math.min(1,(e.clientX-r.left-38)/(r.width-50)))*(b-a);}
-  nearPlayhead(e){if(!this.s.info)return false;const r=$('plot').getBoundingClientRect(),[a,b]=this.view(),t=this.s.position;return t>=a&&t<=b&&Math.abs(e.clientX-(r.left+38+(t-a)/(b-a)*(r.width-50)))<=9;}
+  plotFraction(e){const r=$('plot').getBoundingClientRect();return Math.max(0,Math.min(1,(e.clientX-r.left-plotInset)/Math.max(1,r.width-2*plotInset)));}
+  plotTime(e){const [a,b]=this.view();return a+this.plotFraction(e)*(b-a);}
+  nearPlayhead(e){if(!this.s.info)return false;const r=$('plot').getBoundingClientRect(),[a,b]=this.view(),t=this.s.position;return t>=a&&t<=b&&Math.abs(e.clientX-(r.left+plotInset+(t-a)/(b-a)*(r.width-2*plotInset)))<=9;}
   seekPlot(t,flush=false){this.plotSeekTime=t;if(flush){clearTimeout(this.plotSeekTimer);this.plotSeekTimer=null;this.seek(t);}else if(!this.plotSeekTimer)this.plotSeekTimer=setTimeout(()=>{this.plotSeekTimer=null;this.seek(this.plotSeekTime);},80);}
   view(){return this.s.graphRange||[0,this.s.info?.duration||1];}
   setView(view){if(!this.s.info)return;this.s.graphRange=constrainView(view,this.s.info.duration,this.minSpan());this.onViewChange(this.s.graphRange);this.refresh();}
@@ -84,13 +86,13 @@ export class Timeline {
   plot(){
     const canvas=$('plot'),rect=canvas.getBoundingClientRect(),dpr=devicePixelRatio||1;canvas.width=Math.max(1,Math.round(rect.width*dpr));canvas.height=Math.max(1,Math.round(rect.height*dpr));
     const c=canvas.getContext('2d');c.scale(dpr,dpr);const w=rect.width,h=rect.height;if(!this.s.info)return;
-    const [a,b]=this.view(),x0=38,x1=w-12,y0=16,y1=h-26,x=t=>x0+(t-a)/(b-a)*(x1-x0),y=v=>y1-v/255*(y1-y0);
+    const [a,b]=this.view(),x0=plotInset,x1=w-plotInset,y0=16,y1=h-26,x=t=>x0+(t-a)/(b-a)*(x1-x0),y=v=>y1-v/255*(y1-y0);
     if(x1<=x0||y1<=y0)return;
     c.save();c.beginPath();c.rect(x0,y0,x1-x0,y1-y0);c.clip();c.fillStyle='#101013';c.fillRect(x0,y0,x1-x0,y1-y0);
     const ranges=this.s.result?this.s.result.report.gui.playback_ranges.map(r=>[r.start,r.end]):this.getRanges();
     ranges.forEach(([start,end],i)=>{const left=Math.max(a,start),right=Math.min(b,end);if(right<=left)return;c.fillStyle=rangeColor(i)+'18';c.fillRect(x(left),y0,x(right)-x(left),y1-y0);c.fillStyle=rangeColor(i);c.fillRect(x(left),y0,x(right)-x(left),2);});
     c.restore();c.font='11px Segoe UI';
-    for(const value of [0,64,128,192,255]){c.strokeStyle='#34343b';c.beginPath();c.moveTo(x0,y(value));c.lineTo(x1,y(value));c.stroke();c.fillStyle='#a9a9b5';c.textAlign='right';c.fillText(value,x0-7,y(value)+3);}
+    for(const value of [0,64,128,192,255]){c.strokeStyle='#34343b';c.beginPath();c.moveTo(x0,y(value));c.lineTo(x1,y(value));c.stroke();}
     for(let i=0;i<5;i++){c.textAlign=i===0?'left':i===4?'right':'center';c.fillStyle='#aaaab5';c.fillText(time(a+(b-a)*i/4),x(a+(b-a)*i/4),h-6);}
     c.save();c.beginPath();c.rect(x0,y0,x1-x0,y1-y0);c.clip();
     if(this.s.result)for(const [field,color,dash] of [['monitor_luma','#72db9c',[]],['lens_luma','#eeb36a',[5,3]]]){
@@ -102,6 +104,12 @@ export class Timeline {
     const threshold=this.s.result?.report.settings.brightness_threshold;
     if(threshold!==null&&threshold!==undefined){c.setLineDash([6,4]);c.strokeStyle='#bdabd9';c.beginPath();c.moveTo(x0,y(threshold));c.lineTo(x1,y(threshold));c.stroke();c.fillStyle='#e1d5f4';c.textAlign='right';c.fillText('Threshold '+threshold,x1-5,Math.max(y0+12,y(threshold)-5));}
     c.restore();
+    c.textAlign='left';
+    for(const value of [0,64,128,192,255]){
+      const label=String(value),baseline=Math.max(y0+12,Math.min(y1-4,y(value)+3));
+      c.fillStyle='#101013e6';c.fillRect(x0+3,baseline-11,c.measureText(label).width+8,14);
+      c.fillStyle='#bcbcc6';c.fillText(label,x0+7,baseline);
+    }
     if(this.s.position>=a&&this.s.position<=b){
       const px=x(this.s.position);c.setLineDash([]);c.strokeStyle=playheadColor;c.lineWidth=2;
       c.beginPath();c.moveTo(px,y0);c.lineTo(px,y1);c.stroke();

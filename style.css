@@ -103,8 +103,6 @@ details[open]>summary{color:#d0d0d9;margin-bottom:6px}
 .range-fields{display:grid;grid-template-columns:1fr 1fr;gap:9px}
 .range-fields label{font-size:11px;color:var(--muted)}
 .range-fields input{margin-top:5px;font-size:12px}
-.range-marks{display:flex;justify-content:space-between;margin:0 0 5px}
-.range-marks button{font-size:11px;height:28px}
 .wide{width:100%}
 #addRange{background:#28282d;font-size:12px}
 #addRange svg{width:14px;height:14px}
